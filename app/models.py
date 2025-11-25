@@ -10,3 +10,4 @@ class CalculationRequest(BaseModel):
 class CalculationResponse(BaseModel):
     """Standard response model for calculator results."""
     result: float
+

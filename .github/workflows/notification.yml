@@ -1,0 +1,50 @@
+name: SMS Notifications
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  notify-and-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 1️⃣ Send SMS when commit is pushed to main
+      - name: SMS - Commit pushed to main
+        uses: twilio-labs/actions-sms@v1
+        with:
+          fromPhoneNumber: ${{ secrets.TWILIO_FROM }}
+          toPhoneNumber: ${{ secrets.TWILIO_TO }}
+          message: "New commit pushed to main by ${{ github.actor }}: '${{ github.event.head_commit.message }}'"
+          TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+          TWILIO_API_KEY: ${{ secrets.TWILIO_API_KEY }}
+          TWILIO_API_SECRET: ${{ secrets.TWILIO_API_SECRET }}
+
+      # 2️⃣ Run your project checks (example: Python tests)
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run tests
+        run: pytest -v
+
+      # 3️⃣ Send SMS only if the checks pass
+      - name: SMS - Checks Passed
+        if: success()
+        uses: twilio-labs/actions-sms@v1
+        with:
+          fromPhoneNumber: ${{ secrets.TWILIO_FROM }}
+          toPhoneNumber: ${{ secrets.TWILIO_TO }}
+          message: "✅ CI Passed on 'main' for commit '${{ github.sha }}'"
+          TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+          TWILIO_API_KEY: ${{ secrets.TWILIO_API_KEY }}
+          TWILIO_API_SECRET: ${{ secrets.TWILIO_API_SECRET }}
