@@ -1,0 +1,37 @@
+name: CI (Python + Docker-style)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Run tests in container
+    runs-on: ubuntu-latest
+
+    container:
+      image: python:3.11-slim
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Show Python version
+        run: python --version
+
+      - name: Install system dependencies
+        run: |
+          apt-get update && apt-get install -y build-essential && rm -rf /var/lib/apt/lists/*
+
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run pytest
+        run: pytest
+
+      - name: Run flake8
+        run: flake8 app tests --max-line-length=100
